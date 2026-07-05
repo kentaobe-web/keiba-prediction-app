@@ -51,9 +51,42 @@ export interface RaceMeta {
 export const RACE_DATES: string[] = ["2026-07-05", "2026-07-06"];
 
 export const TRACKS: Record<"中央" | "地方", string[]> = {
-  中央: ["東京", "中山", "阪神", "京都", "福島", "小倉"],
-  地方: ["大井", "船橋", "川崎", "浦和", "門別", "園田"],
+  中央: ["東京", "中山", "阪神", "京都", "福島", "小倉", "函館", "札幌"],
+  地方: ["大井", "船橋", "川崎", "浦和", "門別", "園田", "名古屋", "高知"],
 };
+
+// レース一覧（開催日 × 競馬場 で引く簡易カタログ）。
+// 実運用では公式データ連携やAPIに置き換え可能な形にしてある。
+export interface RaceListItem {
+  raceNo: string; // "11R"
+  raceName: string; // "函館記念 (G3)"
+}
+
+const DEFAULT_RACES: RaceListItem[] = [
+  { raceNo: "9R", raceName: "3歳上1勝クラス" },
+  { raceNo: "10R", raceName: "特別戦" },
+  { raceNo: "11R", raceName: "メインレース" },
+  { raceNo: "12R", raceName: "最終レース" },
+];
+
+// 特定の開催日・競馬場に固有のレース名を持たせたい場合はここに追加
+const RACE_CATALOG: Record<string, RaceListItem[]> = {
+  "2026-07-05|函館": [
+    { raceNo: "9R", raceName: "3歳上1勝クラス" },
+    { raceNo: "10R", raceName: "潮騒特別" },
+    { raceNo: "11R", raceName: "函館記念 (G3)" },
+    { raceNo: "12R", raceName: "3歳上2勝クラス" },
+  ],
+  "2026-07-05|東京": [
+    { raceNo: "10R", raceName: "青梅特別" },
+    { raceNo: "11R", raceName: "メインステークス (G3)" },
+    { raceNo: "12R", raceName: "3歳上1勝クラス" },
+  ],
+};
+
+export function getRaceList(date: string, track: string): RaceListItem[] {
+  return RACE_CATALOG[`${date}|${track}`] ?? DEFAULT_RACES;
+}
 
 export const CURRENT_RACE: RaceMeta = {
   id: "20260705-tokyo-11",
