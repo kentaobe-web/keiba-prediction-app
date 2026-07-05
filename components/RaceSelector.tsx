@@ -1,69 +1,57 @@
-"use client";
+'use client';
 
-import type { Race } from "../lib/types";
+import { Race } from '@/lib/mock-data';
 
 type Props = {
   races: Race[];
   selectedRaceId: string;
-  onChangeRace: (raceId: string) => void;
+  onSelectRace: (raceId: string) => void;
 };
 
-export function RaceSelector({ races, selectedRaceId, onChangeRace }: Props) {
+export default function RaceSelector({ races, selectedRaceId, onSelectRace }: Props) {
   const selectedRace = races.find((race) => race.id === selectedRaceId) ?? races[0];
   const categories = Array.from(new Set(races.map((race) => race.category)));
+  const dates = Array.from(new Set(races.map((race) => race.date)));
   const courses = Array.from(new Set(races.filter((race) => race.category === selectedRace.category).map((race) => race.course)));
-  const raceOptions = races.filter((race) => race.category === selectedRace.category && race.course === selectedRace.course);
-
-  function changeCategory(category: string) {
-    const nextRace = races.find((race) => race.category === category) ?? races[0];
-    onChangeRace(nextRace.id);
-  }
-
-  function changeCourse(course: string) {
-    const nextRace = races.find((race) => race.category === selectedRace.category && race.course === course) ?? selectedRace;
-    onChangeRace(nextRace.id);
-  }
 
   return (
     <section className="selector-card">
-      <div className="selector-grid">
-        <label>
-          <span>開催日</span>
-          <select value={selectedRace.date} onChange={(event) => {
-            const nextRace = races.find((race) => race.date === event.target.value) ?? selectedRace;
-            onChangeRace(nextRace.id);
-          }}>
-            {Array.from(new Set(races.map((race) => race.date))).map((date) => (
-              <option key={date} value={date}>{date}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          <span>種別</span>
-          <select value={selectedRace.category} onChange={(event) => changeCategory(event.target.value)}>
-            {categories.map((category) => <option key={category}>{category}</option>)}
-          </select>
-        </label>
-        <label>
-          <span>競馬場</span>
-          <select value={selectedRace.course} onChange={(event) => changeCourse(event.target.value)}>
-            {courses.map((course) => <option key={course}>{course}</option>)}
-          </select>
-        </label>
-        <label>
-          <span>レース</span>
-          <select value={selectedRace.id} onChange={(event) => onChangeRace(event.target.value)}>
-            {raceOptions.map((race) => (
-              <option key={race.id} value={race.id}>{race.raceName}</option>
-            ))}
-          </select>
-        </label>
+      <div className="field">
+        <label>開催日</label>
+        <select value={selectedRace.date} onChange={(event) => {
+          const next = races.find((race) => race.date === event.target.value) ?? selectedRace;
+          onSelectRace(next.id);
+        }}>
+          {dates.map((date) => <option key={date}>{date}</option>)}
+        </select>
       </div>
-      <div className="race-summary">
-        <strong>{selectedRace.course} {selectedRace.raceName}</strong>
-        <span>発走 {selectedRace.startTime}</span>
-        <span>{selectedRace.horses.length}頭立て</span>
+      <div className="field">
+        <label>種別</label>
+        <select value={selectedRace.category} onChange={(event) => {
+          const next = races.find((race) => race.category === event.target.value) ?? selectedRace;
+          onSelectRace(next.id);
+        }}>
+          {categories.map((category) => <option key={category}>{category}</option>)}
+        </select>
       </div>
+      <div className="field">
+        <label>競馬場</label>
+        <select value={selectedRace.course} onChange={(event) => {
+          const next = races.find((race) => race.category === selectedRace.category && race.course === event.target.value) ?? selectedRace;
+          onSelectRace(next.id);
+        }}>
+          {courses.map((course) => <option key={course}>{course}</option>)}
+        </select>
+      </div>
+      <div className="field wide">
+        <label>レース</label>
+        <select value={selectedRace.id} onChange={(event) => onSelectRace(event.target.value)}>
+          {races.filter((race) => race.category === selectedRace.category && race.course === selectedRace.course).map((race) => (
+            <option key={race.id} value={race.id}>{race.raceNo} {race.raceName}</option>
+          ))}
+        </select>
+      </div>
+      <button className="fetch-button" type="button">AIリサーチ開始</button>
     </section>
   );
 }

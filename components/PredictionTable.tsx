@@ -1,64 +1,48 @@
-"use client";
+import { Race, consensusForHorse, sources } from '@/lib/mock-data';
 
-import type { PredictionRow, PredictionSource } from "../lib/types";
-
-export function PredictionTable({ rows, sources }: { rows: PredictionRow[]; sources: PredictionSource[] }) {
-  const sortedRows = [...rows].sort((a, b) => b.score - a.score || b.winCount - a.winCount || a.number - b.number);
+export default function PredictionTable({ race }: { race: Race }) {
+  const rows = race.horses
+    .map((horse) => ({ horse, consensus: consensusForHorse(race, horse) }))
+    .sort((a, b) => b.consensus.totalScore - a.consensus.totalScore);
 
   return (
-    <section className="table-card">
-      <div className="table-header">
-        <div>
-          <h2>予想一覧</h2>
-          <p>縦軸は馬番・馬名、横軸は15人分の予想です。</p>
-        </div>
-        <div className="legend">
-          <span className="mark win">◎</span><span>本命</span>
-          <span className="mark second">○</span><span>対抗</span>
-          <span className="mark third">▲</span><span>単穴</span>
-          <span className="mark keep">△</span><span>連下</span>
-          <span className="mark star">☆</span><span>穴</span>
-        </div>
-      </div>
-
-      <div className="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th className="sticky-col num-col">馬番</th>
-              <th className="sticky-col name-col">馬名</th>
-              <th>騎手</th>
-              {sources.map((source) => <th key={source.id}>{source.name}</th>)}
-              <th>◎数</th>
-              <th>総合点</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedRows.map((row) => (
-              <tr key={row.number}>
-                <td className="sticky-col num-col horse-number">{row.number}</td>
-                <td className="sticky-col name-col horse-name">{row.name}</td>
-                <td>{row.jockey}</td>
-                {sources.map((source) => {
-                  const mark = row.marks[source.id] ?? "";
-                  return <td key={source.id}><span className={`mark ${markClass(mark)}`}>{mark || "-"}</span></td>;
-                })}
-                <td className="win-count">{row.winCount}</td>
-                <td className="score">{row.score}</td>
+    <div className="table-wrap">
+      <table className="prediction-table">
+        <thead>
+          <tr>
+            <th className="sticky-col">馬番</th>
+            <th className="horse-col">馬名</th>
+            <th>騎手</th>
+            <th>人気</th>
+            <th>オッズ</th>
+            {sources.map((source) => <th key={source.id}>{source.name}</th>)}
+            <th>◎数</th>
+            <th>総合点</th>
+            <th>判定</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(({ horse, consensus }) => {
+            const isValue = horse.popularity >= 5 && consensus.totalScore >= 24;
+            const isDanger = horse.popularity <= 2 && consensus.totalScore <= 18;
+            return (
+              <tr key={horse.number} className={isValue ? 'value-row' : isDanger ? 'danger-row' : ''}>
+                <td className="sticky-col number-cell">{horse.number}</td>
+                <td className="horse-name">{horse.name}</td>
+                <td>{horse.jockey}</td>
+                <td>{horse.popularity}人気</td>
+                <td>{horse.odds.toFixed(1)}</td>
+                {consensus.sourceMarks.map((item) => (
+                  <td key={item.source.id} className={`mark mark-${item.mark || 'none'}`}>{item.mark || '-'}</td>
+                ))}
+                <td className="score-main">{consensus.honmeiCount}</td>
+                <td className="score-main">{consensus.totalScore}</td>
+                <td>{isValue ? '🔥穴候補' : isDanger ? '⚠危険人気' : '通常'}</td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
-}
-
-function markClass(mark: string) {
-  if (mark === "◎") return "win";
-  if (mark === "○") return "second";
-  if (mark === "▲") return "third";
-  if (mark === "△") return "keep";
-  if (mark === "☆") return "star";
-  return "none";
 }
