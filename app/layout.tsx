@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "競馬予想まとめダッシュボード",
-  description: "個人利用向けの競馬予想まとめダッシュボード",
+  title: "予想まとめ小部ちゃん",
+  description: "中央・地方競馬の予想を横断比較する個人用ダッシュボード"
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
