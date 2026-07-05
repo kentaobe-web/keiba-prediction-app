@@ -1,48 +1,35 @@
-# 予想まとめ小部ちゃん v0.5
+# 予想まとめ小部ちゃん v0.6
 
 中央・地方競馬 予想集約ダッシュボード（個人利用）。
-許可されたURLをUIから登録すると、汎用抽出で予想印を取得し予想表に反映します。
+出馬表は「貼り付け取り込み」で実データに一致させ、予想印は登録URLから汎用抽出します。
 
-## 使い方
-1. `npm install && npm run dev`
-2. 画面上部でレースを選ぶ（開催日 / 中央・地方 / 競馬場 / レース）
-3. 「URL設定」を開き、取得したいURLを登録
-   - 予想元名を選び、URLを入力
-   - URL内の {track} {raceNo} {raceName} は選択中レースの値に置換されます
-   - CSVインポート/エクスポートで一括管理も可能
-4. 「予想を探す」を押すと、登録URLを順に取得→抽出→表に反映
-5. 取得結果・URL設定はブラウザ（localStorage）に保存され、次回自動復元
-6. 「取得結果をクリア」で仮データに戻せます
+## 出馬表の貼り付け取り込み（今回追加）
+1. 出馬表ページで、馬番・馬名・騎手・人気・オッズが並んだ表部分を選択してコピー
+2. アプリの「出馬表を貼り付けて取り込む」を開き、貼り付けて「解析」
+3. プレビューを確認して「この出馬表を反映する」
+4. 開催日・レース選択と合わせれば、日付/レース/出走馬が実データに一致します
+5. 取り込んだ出馬表はブラウザ（localStorage）に保存、次回自動復元
+   「出馬表を仮データに戻す」でリセット可
 
-## 取得対象URLの設定場所
-- 初期値ファイル: `data/source-urls.json`（デフォルト空）
-- 実運用の編集: 画面の「URL設定」UI（localStorage 保存が主）
-- サーバ保存: `PUT /api/sources` が `data/source-urls.json` に書き込み
-  （Vercel等の読み取り専用環境では書き込めないため localStorage を主にしています）
+※ 自動巡回ではなく、あなたが取得した情報を手元で貼り付ける方式です。
+   タブ区切り・スペース区切り・ヘッダ行混在・性齢/斤量列混在に対応。
 
-⚠️ 規約・robots.txt で自動取得が許可されたURLのみ登録してください。
-ログイン必須・有料記事は登録しないでください。サイト固有スクレイピングは行いません。
-
-## robots.txt 確認方法（自動）
-取得前に `app/api/fetch-url` が対象オリジンの `/robots.txt` を取得し、
-`User-agent: *` の `Disallow` に該当パスが含まれる場合は取得せず「取得不可（robots.txt により禁止）」を返します。
-その他の安全弁: 8秒タイムアウト / 1.5MBサイズ上限 / HTMLのみ / ログイン・有料note簡易検知 /
-直列取得 + 各アクセス間1.2秒待機。
-
-## 抽出ロジック
-`lib/extract.ts`（サイト非依存）。HTMLをタグ除去してテキスト化し、
-印（◎○▲△☆、全角ゆらぎ正規化）を走査、前後文脈から馬番(1〜18)と
-カタカナ馬名(3文字以上)を推定。馬番も馬名も取れない孤立印は誤検出として除外、重複排除。
-抽出結果は「予想元名→表の列」「馬番/馬名→行」でマージして反映。
+## 予想印の取得（既存）
+「URL設定」に規約・robots.txt で許可されたURLを登録 →「予想を探す」で
+汎用抽出（◎○▲△☆）し、取れたものだけ表に反映。取得前に robots.txt を確認し、
+禁止・失敗・印検出なしは明示。CSVインポート/エクスポート対応。
 
 ## 主なファイル
-- data/source-urls.json         … 取得対象URLの初期設定（空）
-- app/api/sources/route.ts      … URL設定の読み書き（GET/PUT）
-- app/api/research/route.ts     … 登録URLを直列取得→抽出→返却
-- app/api/fetch-url/route.ts    … 単一URL取得（robots/タイムアウト/ゲート検知）
-- lib/extract.ts                … 汎用印抽出エンジン
-- lib/research-sources.ts       … 型・キーワード生成・URL置換
-- lib/analysis.ts               … ◎数・総合点・本命/穴/危険
-- lib/mock-data.ts              … レースカタログ・15予想元・仮出馬表
-- components/SourceManager.tsx  … URL追加/編集/削除 + CSV入出力
-- components/RaceSelector.tsx / PredictionTable.tsx / InsightCards.tsx / ResearchStatus.tsx
+- lib/parse-racecard.ts        … 貼り付け出馬表の汎用パーサ（今回追加）
+- components/RacecardImport.tsx … 貼り付けUI・プレビュー・反映（今回追加）
+- lib/extract.ts               … 予想印の汎用抽出
+- app/api/research・fetch-url・sources … 取得/robots確認/URL設定
+- lib/analysis.ts / mock-data.ts
+- components/RaceSelector / PredictionTable / InsightCards / ResearchStatus / SourceManager
+
+## セットアップ
+```bash
+npm install
+npm run build
+npm run dev
+```

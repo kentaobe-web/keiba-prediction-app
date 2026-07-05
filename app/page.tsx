@@ -6,6 +6,7 @@ import PredictionTable from "@/components/PredictionTable";
 import InsightCards from "@/components/InsightCards";
 import ResearchStatus, { SourceStatus } from "@/components/ResearchStatus";
 import SourceManager from "@/components/SourceManager";
+import RacecardImport from "@/components/RacecardImport";
 import { HORSES, CURRENT_RACE, SOURCES, Horse, Mark } from "@/lib/mock-data";
 import { ResearchSource } from "@/lib/research-sources";
 import {
@@ -17,6 +18,7 @@ import {
 
 const RESULT_KEY = "kobu-chan:research:v1";
 const SOURCES_KEY = "kobu-chan:sources:v1";
+const RACECARD_KEY = "kobu-chan:racecard:v1";
 
 interface ResearchRow {
   umaban?: number;
@@ -70,12 +72,34 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const [statuses, setStatuses] = useState<SourceStatus[]>([]);
   const [message, setMessage] = useState<string | null>(null);
+  // baseHorses: 出馬表（貼り付けで差し替え。初期は仮データ）
+  const [baseHorses, setBaseHorses] = useState<Horse[]>(HORSES);
+  // horses: baseHorses に取得印をマージした表示用
   const [horses, setHorses] = useState<Horse[]>(HORSES);
+  const [lastResults, setLastResults] = useState<ResearchResult[]>([]);
   const [urlSources, setUrlSources] = useState<ResearchSource[]>([]);
+  const [imported, setImported] = useState(false);
 
-  // 初期ロード: URL設定（localStorage優先→無ければサーバのJSON）、結果の復元
+  // 初期ロード
   useEffect(() => {
     (async () => {
+      // 出馬表の復元
+      let base = HORSES;
+      try {
+        const rawCard = localStorage.getItem(RACECARD_KEY);
+        if (rawCard) {
+          const saved = JSON.parse(rawCard) as Horse[];
+          if (Array.isArray(saved) && saved.length > 0) {
+            base = saved;
+            setBaseHorses(saved);
+            setImported(true);
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+
+      // URL設定の復元
       let loaded = false;
       try {
         const rawSrc = localStorage.getItem(SOURCES_KEY);
@@ -95,6 +119,8 @@ export default function Page() {
           /* ignore */
         }
       }
+
+      // 取得結果の復元（base にマージ）
       try {
         const raw = localStorage.getItem(RESULT_KEY);
         if (raw) {
@@ -102,16 +128,20 @@ export default function Page() {
             results: ResearchResult[];
             statuses: SourceStatus[];
           };
-          if (saved.results) setHorses(mergeIntoHorses(HORSES, saved.results));
+          if (saved.results) {
+            setLastResults(saved.results);
+            setHorses(mergeIntoHorses(base, saved.results));
+          }
           if (saved.statuses) setStatuses(saved.statuses);
+        } else {
+          setHorses(base);
         }
       } catch {
-        /* ignore */
+        setHorses(base);
       }
     })();
   }, []);
 
-  // URL設定の変更を localStorage に保存（+ サーバへもベストエフォート）
   function handleSourcesChange(next: ResearchSource[]) {
     setUrlSources(next);
     try {
@@ -123,9 +153,20 @@ export default function Page() {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ sources: next }),
-    }).catch(() => {
-      /* 読み取り専用環境では失敗してOK（localStorageが主） */
-    });
+    }).catch(() => {});
+  }
+
+  // 出馬表の貼り付け反映
+  function handleApplyRacecard(newHorses: Horse[]) {
+    setBaseHorses(newHorses);
+    setImported(true);
+    // すでに取得済みの印があれば新しい出馬表にマージし直す
+    setHorses(mergeIntoHorses(newHorses, lastResults));
+    try {
+      localStorage.setItem(RACECARD_KEY, JSON.stringify(newHorses));
+    } catch {
+      /* ignore */
+    }
   }
 
   const stats = useMemo(() => computeStats(horses), [horses]);
@@ -167,7 +208,8 @@ export default function Page() {
         markCount: r.markCount,
       }));
 
-      setHorses(mergeIntoHorses(HORSES, results));
+      setLastResults(results);
+      setHorses(mergeIntoHorses(baseHorses, results));
       setStatuses(newStatuses);
 
       try {
@@ -186,11 +228,23 @@ export default function Page() {
   }
 
   function handleClear() {
-    setHorses(HORSES);
+    setHorses(baseHorses);
+    setLastResults([]);
     setStatuses([]);
     setMessage(null);
     try {
       localStorage.removeItem(RESULT_KEY);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function handleResetRacecard() {
+    setBaseHorses(HORSES);
+    setImported(false);
+    setHorses(mergeIntoHorses(HORSES, lastResults));
+    try {
+      localStorage.removeItem(RACECARD_KEY);
     } catch {
       /* ignore */
     }
@@ -210,6 +264,8 @@ export default function Page() {
         loading={loading}
       />
 
+      <RacecardImport onApply={handleApplyRacecard} />
+
       <SourceManager sources={urlSources} onChange={handleSourcesChange} />
 
       <div className="race-heading">
@@ -224,9 +280,19 @@ export default function Page() {
           {selection.date}　{selection.track}　{selection.raceNo}{" "}
           {selection.raceName}
         </span>
+        {imported ? (
+          <span className="data-tag data-real">実出馬表</span>
+        ) : (
+          <span className="data-tag data-mock">仮データ</span>
+        )}
         <button className="clear-btn" onClick={handleClear}>
           取得結果をクリア
         </button>
+        {imported && (
+          <button className="clear-btn" onClick={handleResetRacecard}>
+            出馬表を仮データに戻す
+          </button>
+        )}
       </div>
 
       {message && <div className="notice">{message}</div>}
@@ -238,8 +304,8 @@ export default function Page() {
       <PredictionTable stats={stats} honmeiUmaban={honmei?.horse.umaban} />
 
       <footer className="site-footer">
-        ※ 取得は登録済みURL候補のみ対象。robots.txt・利用規約を尊重し、
-        ログイン必須/有料ページは対象外。個人利用前提。
+        ※ 出馬表はご自身で取得した情報を貼り付けて利用。取得は登録済みURL候補のみ対象で
+        robots.txt・利用規約を尊重。個人利用前提。
       </footer>
     </main>
   );
