@@ -1,96 +1,154 @@
-export type Mark = '◎' | '○' | '▲' | '△' | '☆' | '';
+// lib/mock-data.ts
+// 仮データ。外部API/スクレイピングは未実装。
 
-export type Horse = {
-  number: number;
-  name: string;
-  jockey: string;
-  popularity: number;
-  odds: number;
+export type Mark = "◎" | "○" | "▲" | "△" | "☆" | "";
+
+export const MARK_SCORE: Record<Mark, number> = {
+  "◎": 5,
+  "○": 4,
+  "▲": 3,
+  "△": 2,
+  "☆": 1,
+  "": 0,
 };
 
-export type Race = {
-  id: string;
-  date: string;
-  category: '中央競馬' | '地方競馬';
-  course: string;
-  raceNo: string;
-  raceName: string;
-  horses: Horse[];
-};
-
-export type Source = {
-  id: string;
-  name: string;
-  type: string;
-  url: string;
-  reliability: number;
-};
-
-export const sources: Source[] = [
-  { id: 'ai-main', name: 'AI本命', type: 'AI', url: '自動検索予定', reliability: 5 },
-  { id: 'tospo', name: '東スポ', type: '新聞', url: '自動検索予定', reliability: 4 },
-  { id: 'nikkan', name: '日刊', type: '新聞', url: '自動検索予定', reliability: 4 },
-  { id: 'sponichi', name: 'スポニチ', type: '新聞', url: '自動検索予定', reliability: 4 },
-  { id: 'sanspo', name: 'サンスポ', type: '新聞', url: '自動検索予定', reliability: 4 },
-  { id: 'book', name: '競馬ブック', type: '専門紙', url: '自動検索予定', reliability: 5 },
-  { id: 'lab', name: '競馬ラボ', type: 'メディア', url: '自動検索予定', reliability: 4 },
-  { id: 'netkeiba', name: 'netkeiba', type: 'メディア', url: '自動検索予定', reliability: 5 },
-  { id: 'index-a', name: '指数A', type: '指数', url: '自動検索予定', reliability: 3 },
-  { id: 'index-b', name: '指数B', type: '指数', url: '自動検索予定', reliability: 3 },
-  { id: 'note-a', name: 'note①', type: '個人', url: '自動検索予定', reliability: 3 },
-  { id: 'note-b', name: 'note②', type: '個人', url: '自動検索予定', reliability: 3 },
-  { id: 'youtube', name: 'YouTube', type: '動画', url: '自動検索予定', reliability: 3 },
-  { id: 'local-ai', name: '地方AI', type: '地方', url: '自動検索予定', reliability: 3 },
-  { id: 'other', name: 'その他', type: '候補', url: '自動検索予定', reliability: 2 },
+// 15人分の予想元
+export const SOURCES: string[] = [
+  "東スポ",
+  "スポニチ",
+  "日刊",
+  "サンスポ",
+  "競馬ブック",
+  "競馬ラボ",
+  "netkeiba",
+  "AI予想A",
+  "AI予想B",
+  "AI予想C",
+  "note予想A",
+  "note予想B",
+  "指数A",
+  "指数B",
+  "YouTube",
 ];
 
-export const races: Race[] = [
+export interface Horse {
+  umaban: number; // 馬番
+  name: string; // 馬名
+  jockey: string; // 騎手
+  ninki: number; // 人気
+  odds: number; // オッズ
+  marks: Mark[]; // 予想元ごとの印（SOURCES と同じ並び・同じ長さ）
+}
+
+export interface RaceMeta {
+  id: string;
+  date: string; // 開催日
+  category: "中央" | "地方";
+  track: string; // 競馬場
+  raceName: string; // レース名
+}
+
+export const RACE_DATES: string[] = ["2026-07-05", "2026-07-06"];
+
+export const TRACKS: Record<"中央" | "地方", string[]> = {
+  中央: ["東京", "中山", "阪神", "京都", "福島", "小倉"],
+  地方: ["大井", "船橋", "川崎", "浦和", "門別", "園田"],
+};
+
+export const CURRENT_RACE: RaceMeta = {
+  id: "20260705-tokyo-11",
+  date: "2026-07-05",
+  category: "中央",
+  track: "東京",
+  raceName: "11R メインステークス (G3)",
+};
+
+// 印生成ヘルパ（仮データ用）
+function m(...arr: Mark[]): Mark[] {
+  const out = arr.slice(0, SOURCES.length);
+  while (out.length < SOURCES.length) out.push("");
+  return out;
+}
+
+export const HORSES: Horse[] = [
   {
-    id: 'tokyo-11', date: '2026-07-05', category: '中央競馬', course: '東京', raceNo: '11R', raceName: 'メインレース',
-    horses: [
-      { number: 1, name: 'サンプルホースA', jockey: '横山武', popularity: 4, odds: 8.2 },
-      { number: 2, name: 'サンプルホースB', jockey: '川田', popularity: 1, odds: 2.8 },
-      { number: 3, name: 'サンプルホースC', jockey: '武豊', popularity: 8, odds: 24.1 },
-      { number: 4, name: 'サンプルホースD', jockey: 'ルメール', popularity: 2, odds: 4.1 },
-      { number: 5, name: 'サンプルホースE', jockey: '戸崎', popularity: 6, odds: 15.5 },
-      { number: 6, name: 'サンプルホースF', jockey: '坂井', popularity: 9, odds: 31.2 },
-      { number: 7, name: 'サンプルホースG', jockey: '松山', popularity: 3, odds: 6.7 },
-      { number: 8, name: 'サンプルホースH', jockey: '岩田望', popularity: 7, odds: 20.8 },
-    ],
+    umaban: 1,
+    name: "サンライズホープ",
+    jockey: "武豊",
+    ninki: 1,
+    odds: 2.4,
+    marks: m("◎", "◎", "○", "◎", "○", "◎", "◎", "○", "◎", "○", "◎", "△", "◎", "○", "◎"),
   },
   {
-    id: 'ooi-11', date: '2026-07-05', category: '地方競馬', course: '大井', raceNo: '11R', raceName: '地方メインレース',
-    horses: [
-      { number: 1, name: 'ローカルスターA', jockey: '御神本', popularity: 2, odds: 4.4 },
-      { number: 2, name: 'ローカルスターB', jockey: '笹川', popularity: 1, odds: 2.5 },
-      { number: 3, name: 'ローカルスターC', jockey: '矢野', popularity: 5, odds: 10.7 },
-      { number: 4, name: 'ローカルスターD', jockey: '森泰斗', popularity: 3, odds: 6.1 },
-      { number: 5, name: 'ローカルスターE', jockey: '本田正', popularity: 7, odds: 18.3 },
-      { number: 6, name: 'ローカルスターF', jockey: '和田譲', popularity: 4, odds: 8.8 },
-    ],
+    umaban: 2,
+    name: "ミッドナイトラン",
+    jockey: "ルメール",
+    ninki: 2,
+    odds: 3.8,
+    marks: m("○", "○", "◎", "○", "◎", "○", "○", "◎", "○", "◎", "○", "◎", "○", "◎", "○"),
+  },
+  {
+    umaban: 3,
+    name: "テツノカゲロウ",
+    jockey: "川田将雅",
+    ninki: 3,
+    odds: 6.1,
+    marks: m("▲", "△", "○", "▲", "△", "▲", "△", "▲", "△", "▲", "△", "○", "▲", "△", "▲"),
+  },
+  {
+    umaban: 4,
+    name: "アオイシグナル",
+    jockey: "戸崎圭太",
+    ninki: 7,
+    odds: 18.9,
+    marks: m("○", "▲", "◎", "△", "○", "☆", "▲", "○", "▲", "△", "◎", "▲", "△", "○", "▲"),
+  },
+  {
+    umaban: 5,
+    name: "グランドフィナーレ",
+    jockey: "横山武史",
+    ninki: 4,
+    odds: 8.5,
+    marks: m("△", "△", "△", "△", "▲", "△", "△", "△", "△", "▲", "△", "△", "△", "△", "△"),
+  },
+  {
+    umaban: 6,
+    name: "シルバースコール",
+    jockey: "松山弘平",
+    ninki: 9,
+    odds: 41.2,
+    marks: m("☆", "", "☆", "☆", "", "☆", "", "☆", "", "☆", "", "☆", "", "☆", ""),
+  },
+  {
+    umaban: 7,
+    name: "ハルカゼノオト",
+    jockey: "岩田望来",
+    ninki: 5,
+    odds: 11.3,
+    marks: m("▲", "○", "△", "▲", "△", "▲", "○", "△", "▲", "△", "▲", "△", "○", "▲", "△"),
+  },
+  {
+    umaban: 8,
+    name: "レッドコメット",
+    jockey: "坂井瑠星",
+    ninki: 12,
+    odds: 78.4,
+    marks: m("☆", "", "", "☆", "", "", "☆", "", "", "☆", "", "", "☆", "", ""),
+  },
+  {
+    umaban: 9,
+    name: "ノーザンブライト",
+    jockey: "西村淳也",
+    ninki: 6,
+    odds: 14.7,
+    marks: m("△", "☆", "▲", "☆", "△", "△", "☆", "▲", "△", "☆", "△", "▲", "☆", "△", "☆"),
+  },
+  {
+    umaban: 10,
+    name: "エクリプスゲート",
+    jockey: "菅原明良",
+    ninki: 8,
+    odds: 24.6,
+    marks: m("", "☆", "", "△", "☆", "", "△", "", "☆", "", "△", "", "☆", "", "△"),
   },
 ];
-
-const marks: Mark[] = ['◎', '○', '▲', '△', '☆', ''];
-
-export function getMark(raceId: string, horseNumber: number, sourceIndex: number): Mark {
-  const seed = raceId.length + horseNumber * 7 + sourceIndex * 5;
-  return marks[seed % marks.length];
-}
-
-export function markScore(mark: Mark): number {
-  if (mark === '◎') return 5;
-  if (mark === '○') return 4;
-  if (mark === '▲') return 3;
-  if (mark === '△') return 2;
-  if (mark === '☆') return 1;
-  return 0;
-}
-
-export function consensusForHorse(race: Race, horse: Horse) {
-  const sourceMarks = sources.map((source, index) => ({ source, mark: getMark(race.id, horse.number, index) }));
-  const honmeiCount = sourceMarks.filter((item) => item.mark === '◎').length;
-  const totalScore = sourceMarks.reduce((sum, item) => sum + markScore(item.mark), 0);
-  const gapScore = Math.max(0, horse.popularity - (honmeiCount + 1));
-  return { sourceMarks, honmeiCount, totalScore, gapScore };
-}

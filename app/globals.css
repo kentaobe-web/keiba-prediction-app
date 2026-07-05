@@ -1,1 +1,326 @@
-*{box-sizing:border-box}body{margin:0;background:#f4f6f8;color:#1f2937;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.page{max-width:1500px;margin:0 auto;padding:28px}.hero{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;background:linear-gradient(135deg,#0f5132,#1f7a45);color:white;border-radius:24px;padding:28px;box-shadow:0 14px 30px rgba(15,81,50,.18)}.eyebrow{margin:0 0 8px;font-size:13px;letter-spacing:.08em;opacity:.85}.hero h1{margin:0;font-size:38px}.lead{margin:12px 0 0;opacity:.9}.status-pill{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);padding:10px 14px;border-radius:999px;white-space:nowrap}.selector-card{margin-top:20px;background:white;border:1px solid #dce3ea;border-radius:20px;padding:18px;display:grid;grid-template-columns:repeat(4,minmax(160px,1fr)) auto;gap:14px;align-items:end}.field{display:flex;flex-direction:column;gap:6px}.field label,.label{font-size:12px;color:#64748b;font-weight:700}.field select{height:44px;border:1px solid #cbd5e1;border-radius:12px;padding:0 12px;background:#fff;font-size:15px}.fetch-button{height:44px;border:0;border-radius:12px;background:#ff7a00;color:#fff;font-weight:800;padding:0 18px;cursor:pointer}.race-summary{margin-top:20px;background:#fff;border:1px solid #dce3ea;border-radius:20px;padding:18px;display:flex;justify-content:space-between;gap:16px;align-items:center}.race-summary h2{margin:4px 0 0;font-size:22px}.crawl-box{display:flex;flex-direction:column;gap:4px;background:#fff7ed;border:1px solid #fed7aa;border-radius:16px;padding:14px;color:#9a3412}.content-grid{margin-top:20px;display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px}.main-panel,.insights{min-width:0}.table-wrap{overflow:auto;background:white;border:1px solid #dce3ea;border-radius:20px;box-shadow:0 8px 18px rgba(15,23,42,.05)}.prediction-table{border-collapse:separate;border-spacing:0;min-width:1750px;width:100%;font-size:14px}.prediction-table th{position:sticky;top:0;background:#1f2937;color:white;z-index:2;padding:12px 10px;white-space:nowrap;text-align:center}.prediction-table td{padding:12px 10px;border-bottom:1px solid #eef2f7;text-align:center;white-space:nowrap;background:white}.prediction-table tr:hover td{background:#f8fafc}.sticky-col{position:sticky;left:0;z-index:3}.prediction-table td.sticky-col{background:#fff;font-weight:800}.horse-col{min-width:170px}.horse-name{text-align:left!important;font-weight:800}.number-cell{font-size:18px;color:#0f5132}.mark{font-weight:900;font-size:18px}.mark-◎{color:#dc2626}.mark-○{color:#2563eb}.mark-▲{color:#059669}.mark-△{color:#7c3aed}.mark-☆{color:#d97706}.mark-none{color:#cbd5e1}.score-main{font-weight:900;background:#fff7ed!important;color:#c2410c}.value-row td{background:#fff7ed}.danger-row td{background:#fef2f2}.insights{display:flex;flex-direction:column;gap:14px}.insight-card{background:#fff;border:1px solid #dce3ea;border-radius:20px;padding:18px;box-shadow:0 8px 18px rgba(15,23,42,.04)}.insight-card.primary{background:#0f5132;color:#fff}.insight-card.primary .label{color:#bbf7d0}.insight-card h3{margin:6px 0;font-size:22px}.insight-card p{margin:0;color:inherit}.insight-card ol{margin:10px 0 0;padding-left:20px}.insight-card li{margin:8px 0;font-weight:700}.insight-card span{color:#f97316}@media(max-width:1000px){.page{padding:14px}.hero,.race-summary{flex-direction:column;align-items:stretch}.selector-card{grid-template-columns:1fr}.content-grid{grid-template-columns:1fr}.hero h1{font-size:28px}.prediction-table{min-width:1500px}}
+/* app/globals.css — Tailwind不使用 */
+
+:root {
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --gray-50: #f7f8fa;
+  --gray-100: #eef1f5;
+  --gray-200: #e2e6ec;
+  --gray-300: #cfd6df;
+  --text: #1f2733;
+  --text-muted: #6b7684;
+  --accent: #0a6cbf;      /* netkeiba風ブルー */
+  --accent-dark: #084f8c;
+  --honmei: #d0021b;      /* ◎ 赤 */
+  --taikou: #0a6cbf;      /* ○ 青 */
+  --tanana: #1f7a4d;      /* ▲ 緑 */
+  --renka: #7a5c1f;       /* △ */
+  --hoshi: #a15fbf;       /* ☆ */
+  --warn: #c9481f;
+  --border: #e2e6ec;
+  --radius: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--gray-50);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN",
+    "Yu Gothic", Meiryo, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 16px 48px;
+}
+
+/* ---- header ---- */
+.site-header {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin-bottom: 16px;
+}
+.site-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.site-subtitle {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* ---- selector ---- */
+.selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 16px;
+}
+.selector-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 130px;
+  flex: 1;
+}
+.selector-field label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.selector-field select {
+  appearance: none;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 14px;
+  background: var(--gray-50);
+  color: var(--text);
+}
+.selector-field select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+/* ---- race heading ---- */
+.race-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 16px;
+}
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+}
+.badge-central {
+  background: var(--accent);
+}
+.badge-local {
+  background: #1f7a4d;
+}
+.race-heading-text {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* ---- insight cards ---- */
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+.card h3 {
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+.card-desc {
+  margin: 0 0 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.card-honmei {
+  border-top: 3px solid var(--honmei);
+}
+.card-anauma {
+  border-top: 3px solid var(--accent);
+}
+.card-kiken {
+  border-top: 3px solid var(--warn);
+}
+.insight-horse {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--gray-200);
+  font-size: 13px;
+}
+.insight-horse:last-child {
+  border-bottom: none;
+}
+.insight-umaban {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: var(--gray-100);
+  font-weight: 700;
+  font-size: 12px;
+}
+.insight-name {
+  font-weight: 600;
+}
+.insight-meta {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.insight-score {
+  margin-left: auto;
+  font-weight: 700;
+  color: var(--accent-dark);
+}
+.empty {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: 4px 0 0;
+}
+
+/* ---- table ---- */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.prediction-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: max-content;
+  min-width: 100%;
+  font-size: 13px;
+}
+.prediction-table th,
+.prediction-table td {
+  padding: 8px 10px;
+  text-align: center;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--gray-100);
+}
+.prediction-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--gray-100);
+  color: var(--text);
+  font-weight: 700;
+  z-index: 2;
+  border-bottom: 1px solid var(--gray-300);
+}
+.col-source {
+  min-width: 64px;
+}
+.col-agg {
+  background: var(--gray-50);
+}
+.strong {
+  font-weight: 700;
+  color: var(--accent-dark);
+}
+
+/* sticky左2列 */
+.col-sticky {
+  position: sticky;
+  background: var(--surface);
+  z-index: 1;
+}
+.col-umaban {
+  left: 0;
+  min-width: 52px;
+}
+.col-name {
+  left: 52px;
+  min-width: 120px;
+  text-align: left;
+  font-weight: 600;
+}
+.prediction-table thead th.col-sticky {
+  z-index: 3;
+  background: var(--gray-100);
+}
+
+.prediction-table tbody tr:hover td {
+  background: var(--gray-50);
+}
+.row-honmei td {
+  background: #fff6f6;
+}
+.row-honmei:hover td {
+  background: #ffeeee;
+}
+
+.umaban {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: var(--gray-100);
+  font-weight: 700;
+}
+
+/* marks */
+.mark {
+  font-weight: 700;
+}
+.mark-honmei {
+  color: var(--honmei);
+}
+.mark-taikou {
+  color: var(--taikou);
+}
+.mark-tanana {
+  color: var(--tanana);
+}
+.mark-renka {
+  color: var(--renka);
+}
+.mark-hoshi {
+  color: var(--hoshi);
+}
+.mark-none {
+  color: var(--gray-300);
+}
+
+/* ---- footer ---- */
+.site-footer {
+  margin-top: 16px;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .site-title {
+    font-size: 19px;
+  }
+  .selector-field {
+    min-width: 46%;
+  }
+}
