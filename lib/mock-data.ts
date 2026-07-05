@@ -1,156 +1,121 @@
-export type RaceType = "central" | "local";
-export type Mark = "◎" | "○" | "▲" | "△" | "☆" | "消" | "";
-
-export type Race = {
-  id: string;
-  date: string;
-  raceType: RaceType;
-  racecourse: string;
-  raceNumber: number;
-  raceName: string;
-  startTime: string;
-};
-
-export type Horse = {
-  id: string;
-  raceId: string;
-  horseNumber: number;
-  frameNumber: number;
-  horseName: string;
-  jockey: string;
-};
+export type Mark = "◎" | "○" | "▲" | "△" | "☆" | "";
 
 export type PredictionSource = {
   id: string;
   name: string;
-  category: string;
+  type: "新聞" | "AI" | "指数" | "note" | "メディア";
 };
 
-export type Prediction = {
-  raceId: string;
-  horseId: string;
-  sourceId: string;
-  mark: Mark;
+export type Horse = {
+  number: number;
+  name: string;
+  jockey: string;
 };
+
+export type Race = {
+  id: string;
+  date: string;
+  category: "中央競馬" | "地方競馬";
+  course: string;
+  raceName: string;
+  startTime: string;
+  horses: Horse[];
+  predictions: Record<number, Record<string, Mark>>;
+};
+
+export const sources: PredictionSource[] = [
+  { id: "tospo", name: "東スポ", type: "新聞" },
+  { id: "nikkan", name: "日刊", type: "新聞" },
+  { id: "sponichi", name: "スポニチ", type: "新聞" },
+  { id: "sanspo", name: "サンスポ", type: "新聞" },
+  { id: "book", name: "競馬ブック", type: "メディア" },
+  { id: "netkeiba", name: "netkeiba", type: "メディア" },
+  { id: "lab", name: "競馬ラボ", type: "メディア" },
+  { id: "ai-a", name: "AI予想A", type: "AI" },
+  { id: "ai-b", name: "AI予想B", type: "AI" },
+  { id: "ai-c", name: "AI予想C", type: "AI" },
+  { id: "index-a", name: "指数A", type: "指数" },
+  { id: "index-b", name: "指数B", type: "指数" },
+  { id: "note-a", name: "note予想A", type: "note" },
+  { id: "note-b", name: "note予想B", type: "note" },
+  { id: "ana", name: "穴馬AI", type: "AI" },
+];
+
+const marks: Mark[] = ["◎", "○", "▲", "△", "☆", ""];
+
+function buildPredictions(horseCount: number, offset: number) {
+  const result: Record<number, Record<string, Mark>> = {};
+  for (let horse = 1; horse <= horseCount; horse++) {
+    result[horse] = {};
+    sources.forEach((source, index) => {
+      result[horse][source.id] = marks[(horse + index + offset) % marks.length];
+    });
+  }
+  return result;
+}
 
 export const races: Race[] = [
   {
-    id: "202607050511",
+    id: "jra-tokyo-11",
     date: "2026-07-05",
-    raceType: "central",
-    racecourse: "東京",
-    raceNumber: 11,
-    raceName: "サンプル重賞",
+    category: "中央競馬",
+    course: "東京",
+    raceName: "東京11R メインレース",
     startTime: "15:45",
+    horses: [
+      { number: 1, name: "サンプルスター", jockey: "横山武" },
+      { number: 2, name: "ネクストホープ", jockey: "戸崎" },
+      { number: 3, name: "グランドライン", jockey: "ルメール" },
+      { number: 4, name: "ミラクルゲート", jockey: "川田" },
+      { number: 5, name: "ブルースカイ", jockey: "武豊" },
+      { number: 6, name: "レッドアロー", jockey: "坂井" },
+      { number: 7, name: "ゴールドシップス", jockey: "松山" },
+      { number: 8, name: "ダイヤモンドラン", jockey: "岩田望" },
+    ],
+    predictions: buildPredictions(8, 1),
   },
   {
-    id: "202607054211",
+    id: "jra-hakodate-11",
     date: "2026-07-05",
-    raceType: "local",
-    racecourse: "大井",
-    raceNumber: 11,
-    raceName: "サンプル地方メイン",
-    startTime: "20:10",
+    category: "中央競馬",
+    course: "函館",
+    raceName: "函館11R サマーステークス",
+    startTime: "15:25",
+    horses: [
+      { number: 1, name: "ホッカイドリーム", jockey: "佐々木" },
+      { number: 2, name: "シーサイドブルー", jockey: "浜中" },
+      { number: 3, name: "ノースライト", jockey: "鮫島駿" },
+      { number: 4, name: "ラストスパート", jockey: "池添" },
+      { number: 5, name: "スノーファイター", jockey: "丹内" },
+      { number: 6, name: "ミントグリーン", jockey: "藤岡佑" },
+    ],
+    predictions: buildPredictions(6, 2),
+  },
+  {
+    id: "nar-oi-10",
+    date: "2026-07-05",
+    category: "地方競馬",
+    course: "大井",
+    raceName: "大井10R ナイトカップ",
+    startTime: "19:30",
+    horses: [
+      { number: 1, name: "トーセンナイト", jockey: "笹川" },
+      { number: 2, name: "オオイキング", jockey: "御神本" },
+      { number: 3, name: "サザンライト", jockey: "矢野" },
+      { number: 4, name: "ベイサイドラン", jockey: "本田重" },
+      { number: 5, name: "ファイナルベル", jockey: "森泰斗" },
+      { number: 6, name: "スピードロード", jockey: "和田譲" },
+      { number: 7, name: "スターゲート", jockey: "達城" },
+    ],
+    predictions: buildPredictions(7, 3),
   },
 ];
 
-export const predictionSources: PredictionSource[] = [
-  { id: "tospo", name: "東スポ", category: "スポーツ紙" },
-  { id: "sponichi", name: "スポニチ", category: "スポーツ紙" },
-  { id: "nikkan", name: "日刊", category: "スポーツ紙" },
-  { id: "sanspo", name: "サンスポ", category: "スポーツ紙" },
-  { id: "book", name: "競馬ブック", category: "専門紙" },
-  { id: "netkeiba", name: "netkeiba", category: "メディア" },
-  { id: "labo", name: "競馬ラボ", category: "メディア" },
-  { id: "ai-a", name: "AI予想A", category: "AI" },
-  { id: "ai-b", name: "AI予想B", category: "AI" },
-  { id: "index", name: "独自指数", category: "指数" },
-];
-
-export const horses: Horse[] = [
-  { id: "h01", raceId: "202607050511", horseNumber: 1, frameNumber: 1, horseName: "アオゾラキング", jockey: "田辺" },
-  { id: "h02", raceId: "202607050511", horseNumber: 2, frameNumber: 2, horseName: "サクラテンペスト", jockey: "横山武" },
-  { id: "h03", raceId: "202607050511", horseNumber: 3, frameNumber: 3, horseName: "ミッドナイトベル", jockey: "戸崎" },
-  { id: "h04", raceId: "202607050511", horseNumber: 4, frameNumber: 4, horseName: "レッドスフィア", jockey: "ルメール" },
-  { id: "h05", raceId: "202607050511", horseNumber: 5, frameNumber: 5, horseName: "ゴールドライン", jockey: "川田" },
-  { id: "h06", raceId: "202607050511", horseNumber: 6, frameNumber: 6, horseName: "ノースグランデ", jockey: "坂井" },
-  { id: "h07", raceId: "202607050511", horseNumber: 7, frameNumber: 7, horseName: "スターライトラン", jockey: "武豊" },
-  { id: "h08", raceId: "202607050511", horseNumber: 8, frameNumber: 8, horseName: "ブラックミラージュ", jockey: "岩田望" },
-  { id: "l01", raceId: "202607054211", horseNumber: 1, frameNumber: 1, horseName: "オオイサンダー", jockey: "笹川" },
-  { id: "l02", raceId: "202607054211", horseNumber: 2, frameNumber: 2, horseName: "トウキョウナイト", jockey: "森泰斗" },
-  { id: "l03", raceId: "202607054211", horseNumber: 3, frameNumber: 3, horseName: "ベイサイドスター", jockey: "矢野" },
-  { id: "l04", raceId: "202607054211", horseNumber: 4, frameNumber: 4, horseName: "ミナミノカゼ", jockey: "御神本" },
-  { id: "l05", raceId: "202607054211", horseNumber: 5, frameNumber: 5, horseName: "サンライズオーシャン", jockey: "本田" },
-];
-
-const centralMarks: Record<string, Mark[]> = {
-  h01: ["△", "", "△", "", "", "☆", "", "", "△", ""],
-  h02: ["○", "▲", "○", "△", "▲", "○", "△", "▲", "○", "△"],
-  h03: ["▲", "○", "▲", "○", "○", "▲", "▲", "○", "▲", "○"],
-  h04: ["◎", "◎", "○", "◎", "◎", "◎", "○", "◎", "◎", "◎"],
-  h05: ["○", "◎", "◎", "▲", "◎", "○", "◎", "○", "◎", "▲"],
-  h06: ["☆", "△", "", "△", "△", "", "☆", "△", "", "☆"],
-  h07: ["△", "△", "☆", "☆", "", "△", "△", "☆", "△", ""],
-  h08: ["消", "", "", "", "消", "", "", "", "", "消"],
+export const markScore: Record<Mark, number> = {
+  "◎": 5,
+  "○": 4,
+  "▲": 3,
+  "△": 2,
+  "☆": 1,
+  "": 0,
 };
-
-const localMarks: Record<string, Mark[]> = {
-  l01: ["△", "△", "", "", "△", "", "☆", "△", "", ""],
-  l02: ["◎", "○", "◎", "○", "◎", "◎", "○", "◎", "○", "◎"],
-  l03: ["○", "◎", "○", "◎", "○", "○", "◎", "○", "◎", "○"],
-  l04: ["▲", "▲", "△", "▲", "▲", "△", "▲", "▲", "△", "▲"],
-  l05: ["☆", "", "▲", "△", "", "☆", "△", "", "▲", "△"],
-};
-
-export const predictions: Prediction[] = [
-  ...Object.entries(centralMarks).flatMap(([horseId, marks]) =>
-    marks.map((mark, i) => ({
-      raceId: "202607050511",
-      horseId,
-      sourceId: predictionSources[i].id,
-      mark,
-    }))
-  ),
-  ...Object.entries(localMarks).flatMap(([horseId, marks]) =>
-    marks.map((mark, i) => ({
-      raceId: "202607054211",
-      horseId,
-      sourceId: predictionSources[i].id,
-      mark,
-    }))
-  ),
-];
-
-export function getRaceView(raceId: string) {
-  const race = races.find((item) => item.id === raceId) ?? races[0];
-  const raceHorses = horses
-    .filter((horse) => horse.raceId === race.id)
-    .sort((a, b) => a.horseNumber - b.horseNumber);
-  const racePredictions = predictions.filter((prediction) => prediction.raceId === race.id);
-
-  return {
-    race,
-    horses: raceHorses,
-    sources: predictionSources,
-    predictions: racePredictions,
-  };
-}
-
-export function scoreMark(mark: Mark) {
-  switch (mark) {
-    case "◎":
-      return 5;
-    case "○":
-      return 4;
-    case "▲":
-      return 3;
-    case "△":
-      return 2;
-    case "☆":
-      return 1;
-    case "消":
-      return -2;
-    default:
-      return 0;
-  }
-}

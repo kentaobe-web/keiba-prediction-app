@@ -1,56 +1,42 @@
-import { Horse, Prediction, PredictionSource, scoreMark } from "@/lib/mock-data";
+import { markScore, Race, sources } from "@/lib/mock-data";
 
 type Props = {
-  horses: Horse[];
-  sources: PredictionSource[];
-  predictions: Prediction[];
+  race: Race;
 };
 
-export function PredictionTable({ horses, sources, predictions }: Props) {
-  const getMark = (horseId: string, sourceId: string) => {
-    return predictions.find((item) => item.horseId === horseId && item.sourceId === sourceId)?.mark ?? "";
-  };
-
-  const getScore = (horseId: string) => {
-    return sources.reduce((total, source) => total + scoreMark(getMark(horseId, source.id)), 0);
-  };
-
-  const getFavoriteCount = (horseId: string) => {
-    return sources.filter((source) => getMark(horseId, source.id) === "◎").length;
-  };
-
-  const sortedHorses = [...horses].sort((a, b) => getScore(b.id) - getScore(a.id));
-
+export function PredictionTable({ race }: Props) {
   return (
     <div className="table-wrap">
-      <table>
+      <table className="prediction-table">
         <thead>
           <tr>
-            <th>馬番</th>
-            <th>枠</th>
-            <th className="left">馬名</th>
+            <th className="sticky-col number-col">馬番</th>
+            <th className="sticky-col name-col">馬名</th>
             <th>騎手</th>
-            {sources.map((source) => (
-              <th key={source.id} title={source.category}>{source.name}</th>
-            ))}
+            {sources.map((source) => <th key={source.id}>{source.name}</th>)}
             <th>◎数</th>
             <th>総合点</th>
           </tr>
         </thead>
         <tbody>
-          {sortedHorses.map((horse) => (
-            <tr key={horse.id}>
-              <td><span className="badge">{horse.horseNumber}</span></td>
-              <td>{horse.frameNumber}</td>
-              <td className="left">{horse.horseName}</td>
-              <td>{horse.jockey}</td>
-              {sources.map((source) => (
-                <td className="mark" key={source.id}>{getMark(horse.id, source.id)}</td>
-              ))}
-              <td>{getFavoriteCount(horse.id)}</td>
-              <td className="score">{getScore(horse.id)}</td>
-            </tr>
-          ))}
+          {race.horses.map((horse) => {
+            const prediction = race.predictions[horse.number] ?? {};
+            const honmeiCount = sources.filter((source) => prediction[source.id] === "◎").length;
+            const totalScore = sources.reduce((sum, source) => sum + markScore[prediction[source.id] ?? ""], 0);
+            return (
+              <tr key={horse.number}>
+                <td className="sticky-col number-col horse-number">{horse.number}</td>
+                <td className="sticky-col name-col horse-name">{horse.name}</td>
+                <td>{horse.jockey}</td>
+                {sources.map((source) => {
+                  const mark = prediction[source.id] ?? "";
+                  return <td key={source.id} className={`mark mark-${mark || "none"}`}>{mark || "-"}</td>;
+                })}
+                <td className="count-cell">{honmeiCount}</td>
+                <td className="score-cell">{totalScore}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
