@@ -19,7 +19,7 @@ export function PredictionTable({ horses, sources, predictions }: Props) {
     return sources.filter((source) => getMark(horseId, source.id) === "◎").length;
   };
 
-  const sortedHorses = [...horses].sort((a, b) => b.horseNumber - a.horseNumber).sort((a, b) => getScore(b.id) - getScore(a.id));
+  const sortedHorses = [...horses].sort((a, b) => getScore(b.id) - getScore(a.id));
 
   return (
     <div className="table-wrap">

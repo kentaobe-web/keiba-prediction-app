@@ -1,12 +1,14 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { races } from "@/lib/mock-data";
 
-export function RaceSelector() {
+type Props = {
+  selectedRaceId: string;
+};
+
+export function RaceSelector({ selectedRaceId }: Props) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const selectedRaceId = searchParams.get("raceId") ?? races[0].id;
 
   return (
     <div className="controls">
