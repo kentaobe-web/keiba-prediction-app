@@ -1,74 +1,64 @@
-import { getHonmeiCount, getScore, markScore, sources, type Race, type Mark } from "../lib/mock-data";
+"use client";
 
-type Props = {
-  race: Race;
-};
+import type { PredictionRow, PredictionSource } from "../lib/types";
 
-function markClass(mark: Mark) {
-  if (!mark) return "mark empty";
-  return `mark mark-${markScore[mark]}`;
-}
-
-export function PredictionTable({ race }: Props) {
-  const rankedHorses = [...race.horses].sort((a, b) => {
-    const scoreA = getScore(race.predictions[a.number]);
-    const scoreB = getScore(race.predictions[b.number]);
-    return scoreB - scoreA;
-  });
+export function PredictionTable({ rows, sources }: { rows: PredictionRow[]; sources: PredictionSource[] }) {
+  const sortedRows = [...rows].sort((a, b) => b.score - a.score || b.winCount - a.winCount || a.number - b.number);
 
   return (
     <section className="table-card">
       <div className="table-header">
         <div>
-          <p className="eyebrow">15ソース横断</p>
-          <h2>予想印マトリクス</h2>
+          <h2>予想一覧</h2>
+          <p>縦軸は馬番・馬名、横軸は15人分の予想です。</p>
         </div>
-        <p className="hint">横にスクロールできます</p>
+        <div className="legend">
+          <span className="mark win">◎</span><span>本命</span>
+          <span className="mark second">○</span><span>対抗</span>
+          <span className="mark third">▲</span><span>単穴</span>
+          <span className="mark keep">△</span><span>連下</span>
+          <span className="mark star">☆</span><span>穴</span>
+        </div>
       </div>
 
       <div className="table-scroll">
-        <table className="prediction-table">
+        <table>
           <thead>
             <tr>
-              <th className="sticky-col number-col">馬番</th>
+              <th className="sticky-col num-col">馬番</th>
               <th className="sticky-col name-col">馬名</th>
               <th>騎手</th>
-              <th>人気</th>
-              <th>オッズ</th>
-              {sources.map((source) => (
-                <th key={source.id} title={`${source.category} / 信頼度${source.reliability}`}>
-                  {source.name}
-                </th>
-              ))}
-              <th className="score-col">◎数</th>
-              <th className="score-col">総合点</th>
+              {sources.map((source) => <th key={source.id}>{source.name}</th>)}
+              <th>◎数</th>
+              <th>総合点</th>
             </tr>
           </thead>
           <tbody>
-            {rankedHorses.map((horse) => {
-              const row = race.predictions[horse.number];
-              const honmei = getHonmeiCount(row);
-              const score = getScore(row);
-              return (
-                <tr key={horse.number}>
-                  <td className="sticky-col number-col horse-number">{horse.number}</td>
-                  <td className="sticky-col name-col horse-name">{horse.name}</td>
-                  <td>{horse.jockey}</td>
-                  <td>{horse.popularity}人気</td>
-                  <td>{horse.odds.toFixed(1)}</td>
-                  {sources.map((source) => (
-                    <td key={source.id}>
-                      <span className={markClass(row[source.id])}>{row[source.id] || "－"}</span>
-                    </td>
-                  ))}
-                  <td className="honmei-count">{honmei}</td>
-                  <td className="total-score">{score}</td>
-                </tr>
-              );
-            })}
+            {sortedRows.map((row) => (
+              <tr key={row.number}>
+                <td className="sticky-col num-col horse-number">{row.number}</td>
+                <td className="sticky-col name-col horse-name">{row.name}</td>
+                <td>{row.jockey}</td>
+                {sources.map((source) => {
+                  const mark = row.marks[source.id] ?? "";
+                  return <td key={source.id}><span className={`mark ${markClass(mark)}`}>{mark || "-"}</span></td>;
+                })}
+                <td className="win-count">{row.winCount}</td>
+                <td className="score">{row.score}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
     </section>
   );
+}
+
+function markClass(mark: string) {
+  if (mark === "◎") return "win";
+  if (mark === "○") return "second";
+  if (mark === "▲") return "third";
+  if (mark === "△") return "keep";
+  if (mark === "☆") return "star";
+  return "none";
 }

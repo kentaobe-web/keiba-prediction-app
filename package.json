@@ -1,6 +1,6 @@
 {
   "name": "yoso-matome-obechang",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,13 +9,13 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@types/node": "20.11.30",
-    "@types/react": "18.2.67",
-    "@types/react-dom": "18.2.22",
+    "@types/node": "20.14.10",
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0",
     "next": "14.2.5",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "typescript": "5.4.2"
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "typescript": "5.5.3"
   },
   "devDependencies": {}
 }

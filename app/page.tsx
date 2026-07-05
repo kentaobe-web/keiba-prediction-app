@@ -3,67 +3,108 @@
 import { useMemo, useState } from "react";
 import { PredictionTable } from "../components/PredictionTable";
 import { RaceSelector } from "../components/RaceSelector";
-import { getBestHorse, races, sources } from "../lib/mock-data";
+import { SourceUrlPanel } from "../components/SourceUrlPanel";
+import { buildInitialRows, calculateScore, predictionSources, races } from "../lib/mock-data";
+import type { Mark, PredictionRow, ScrapeResult } from "../lib/types";
 
 export default function Home() {
   const [selectedRaceId, setSelectedRaceId] = useState(races[0].id);
-  const selectedRace = useMemo(
-    () => races.find((race) => race.id === selectedRaceId) ?? races[0],
-    [selectedRaceId]
-  );
-  const bestHorse = getBestHorse(selectedRace);
+  const selectedRace = races.find((race) => race.id === selectedRaceId) ?? races[0];
+  const [manualRows, setManualRows] = useState<Record<string, PredictionRow[]>>({});
+  const [urls, setUrls] = useState<Record<string, string>>({});
+  const [scrapeResults, setScrapeResults] = useState<ScrapeResult[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const rows = useMemo(() => {
+    return manualRows[selectedRace.id] ?? buildInitialRows(selectedRace);
+  }, [manualRows, selectedRace]);
+
+  function updateUrl(sourceId: string, url: string) {
+    setUrls((prev) => ({ ...prev, [sourceId]: url }));
+  }
+
+  async function scrapeSources() {
+    setLoading(true);
+    setScrapeResults([]);
+    try {
+      const sources = predictionSources.map((source) => ({
+        id: source.id,
+        name: source.name,
+        url: urls[source.id] ?? ""
+      })).filter((source) => source.url.trim().length > 0);
+
+      const response = await fetch("/api/scrape", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ raceName: selectedRace.raceName, sources })
+      });
+      const data = await response.json() as { results: ScrapeResult[] };
+      setScrapeResults(data.results ?? []);
+
+      const baseRows = rows.map((row) => ({ ...row, marks: { ...row.marks } }));
+      for (const result of data.results ?? []) {
+        for (const [horseNumber, mark] of Object.entries(result.extractedMarks)) {
+          const row = baseRows.find((item) => item.number === Number(horseNumber));
+          if (row) row.marks[result.sourceId] = mark as Mark;
+        }
+      }
+      const recalculated = baseRows.map((row) => {
+        const totals = calculateScore(row.marks);
+        return { ...row, ...totals };
+      });
+      setManualRows((prev) => ({ ...prev, [selectedRace.id]: recalculated }));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const topHorse = [...rows].sort((a, b) => b.score - a.score)[0];
 
   return (
-    <main className="page-shell">
+    <main className="page">
       <header className="hero">
         <div>
-          <p className="app-kicker">中央・地方競馬 予想集約ダッシュボード</p>
+          <p className="eyebrow">中央・地方競馬 予想集約ダッシュボード</p>
           <h1>🏇 予想まとめ小部ちゃん</h1>
-          <p className="hero-text">
-            AI・新聞・note・指数系など15ソースの印を、馬番ごとに横並びで比較します。
-          </p>
+          <p className="lead">15人分の予想を馬番ごとに横並び表示。まずは仮データ＋URL取得で、個人用ダッシュボードとして動かします。</p>
         </div>
-        <div className="status-box">
-          <span>Version</span>
-          <strong>v0.1 MVP</strong>
-          <small>仮データ表示</small>
+        <div className="hero-card">
+          <span>現在の暫定1位</span>
+          <strong>{topHorse?.number}番 {topHorse?.name}</strong>
+          <small>総合点 {topHorse?.score} / ◎数 {topHorse?.winCount}</small>
         </div>
       </header>
 
-      <RaceSelector races={races} selectedRaceId={selectedRace.id} onRaceChange={setSelectedRaceId} />
+      <RaceSelector races={races} selectedRaceId={selectedRace.id} onChangeRace={setSelectedRaceId} />
 
-      <section className="race-summary">
-        <div className="summary-main">
-          <p className="eyebrow">選択中レース</p>
-          <h2>{selectedRace.course} {selectedRace.raceNo} {selectedRace.name}</h2>
-          <p>{selectedRace.date} / 発走 {selectedRace.startTime} / {selectedRace.type === "central" ? "中央競馬" : "地方競馬"}</p>
-        </div>
-        <div className="summary-card highlight">
-          <span>総合1位</span>
-          <strong>{bestHorse.number}. {bestHorse.name}</strong>
-          <small>◎{bestHorse.honmei} / {bestHorse.score}点</small>
-        </div>
-        <div className="summary-card">
-          <span>予想ソース</span>
-          <strong>{sources.length}件</strong>
-          <small>AI・新聞・note・指数</small>
-        </div>
-      </section>
+      <div className="dashboard-grid">
+        <PredictionTable rows={rows} sources={predictionSources} />
+        <aside className="ranking-card">
+          <h2>◎ランキング</h2>
+          {[...rows].sort((a, b) => b.winCount - a.winCount || b.score - a.score).slice(0, 5).map((row, index) => (
+            <div className="rank-row" key={row.number}>
+              <span>{index + 1}</span>
+              <div>
+                <strong>{row.number}番 {row.name}</strong>
+                <small>◎ {row.winCount} / 点数 {row.score}</small>
+              </div>
+            </div>
+          ))}
+          <div className="ai-comment">
+            <strong>AIコメント</strong>
+            <p>現時点では総合点と◎数を重視。次フェーズで人気・オッズ・予想元の信頼度を加えて「妙味馬」を出します。</p>
+          </div>
+        </aside>
+      </div>
 
-      <PredictionTable race={selectedRace} />
-
-      <section className="source-panel">
-        <div>
-          <p className="eyebrow">次フェーズ</p>
-          <h2>予想元URL登録</h2>
-          <p>次に、ここへ東スポ・note・AI予想などのURLを貼って、AI抽出する機能を作ります。</p>
-        </div>
-        <div className="url-grid">
-          <input readOnly value="https://example.com/tospo-race-yoso" />
-          <input readOnly value="https://note.com/sample-yosoka" />
-          <button type="button">URL登録機能は次回追加</button>
-        </div>
-      </section>
+      <SourceUrlPanel
+        sources={predictionSources}
+        urls={urls}
+        onChangeUrl={updateUrl}
+        onScrape={scrapeSources}
+        loading={loading}
+        results={scrapeResults}
+      />
     </main>
   );
 }
